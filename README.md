@@ -4,7 +4,7 @@ A simple tool that checks a folder of PDF files to see if there are similar or m
 
 ### Usage
 ```
-pdf_img_diff/main.py --folder /path_to_folder/
+pdf_img_diff/main.py /path/to/folder/ 
 ```
 
 Will output a report saying which files have matching images between them.
