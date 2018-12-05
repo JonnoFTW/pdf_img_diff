@@ -1,6 +1,6 @@
 from collections import defaultdict
 from math import ceil
-from pdf_img_diff.main import compare_images
+from pdf_img_diff.img_comp import compare_images_hist
 from glob import glob
 import cv2
 import matplotlib.pyplot as plt

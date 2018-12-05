@@ -8,49 +8,23 @@ import zipfile
 from PIL import Image
 import io
 from matplotlib import pyplot as plt
-from skimage.measure import compare_ssim
-
-
-def compare_images_hist(a, b):
-    """
-    Compare 2 images for similarity
-    Returns an int between 0 and 100
-    100 is an identical copy, 0 is completely different
-
-    Should not be susceptible to the following:
-        * Random noise
-        * Cropping
-        * Rotation
-        * Colour space reduction
-    :param a: first image
-    :param b: second image
-    :return: similarity of the two images as a percentage
-    """
-    hists = [cv2.calcHist([im], [0, 1, 2], None, [8, 8, 8],
-                          [0, 256, 0, 256, 0, 256]) for im in (a, b)]
-    return cv2.compareHist(*hists, method=cv2.HISTCMP_CORREL)
-
-
-def compare_images_ssim(a, b):
-    (score, diff) = compare_ssim(a, b, full=True)
-    diff = (diff * 255).astype("uint8")
-    return score
+from pdf_img_diff.img_comp import compare_images_ssim, compare_images_hist, compare_images_kaze
 
 
 def bytes_to_cv2img(b):
     return np.array(Image.open(io.BytesIO(b)))
 
 
-def show_images(im, im2, im_name, im2_name, s, fa, fb):
+def show_images(im, im2, im_name, im2_name, s, fa, fb, method):
     f, ax = plt.subplots(1, 2)
-    f.suptitle("Histogram Correlation: {}".format(s))
+    f.suptitle("{}: {}".format(method, s))
     ax[0].imshow(im)
-    ax[0].set_title(fa.split('_')[0]+' '+im_name)
+    ax[0].set_title(fa.split('_')[0] + ' ' + im_name)
     ax[1].imshow(im2)
-    ax[1].set_title(fb.split('_')[0]+' '+im2_name)
+    ax[1].set_title(fb.split('_')[0] + ' ' + im2_name)
 
 
-def main(files, verbose=False):
+def main(files, method='hist', verbose=False, threshold=0.9):
     """
     Compare images between files in files
     :param verbose:
@@ -103,9 +77,19 @@ def main(files, verbose=False):
                         b_gray = cv2.cvtColor(b_img, cv2.COLOR_RGB2GRAY)
                         if any(cv2.countNonZero(i) < 10 for i in (a_gray, b_gray)):
                             continue
-                        # score = compare_images_ssim(a_gray, b_gray)
-                        score = compare_images_hist(a_img, b_img)
-                        if score > .50:
+                        func = {
+                            'hist': compare_images_hist,
+                            'ssim': compare_images_ssim,
+                            'kaze': compare_images_kaze
+                        }[method]
+                        args = {
+                            'a_img': a_img,
+                            'b_img': b_img,
+                            'a_name': f+a_name,
+                            'b_name': f2+b_name,
+                        }
+                        score = func(**args)
+                        if score > threshold:
                             matches.append([a_name, b_name, score])
 
                     report[t] = matches
@@ -115,18 +99,22 @@ def main(files, verbose=False):
             for m in matches:
                 print("\t", m)
                 if verbose:
-                    show_images(documents[fa][m[0]], documents[fb][m[1]], m[0], m[1], m[2], fa, fb)
+                    show_images(documents[fa][m[0]], documents[fb][m[1]], m[0], m[1], m[2], fa, fb, method)
     if verbose:
         plt.show()
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description='Make a report about a folder of PDF or docx files and any suspiciously similar images or blocks of text that are images')
     # parser.
-    parser.add_argument('folder', default='./', type=str)
-    parser.add_argument('-v', dest='verbose', action='store_true')
+    parser.add_argument('folder', default='./', nargs='?', type=str, help='The folder of images to use')
+    parser.add_argument('method', default='kaze', nargs='?', choices=['hist', 'kaze', 'ssim'], help='Comparison method to use')
+    parser.add_argument('threshold', default=0.8, nargs='?', type=float, help='Similarity between images must exceed this value to count as a match')
+    parser.add_argument('-v', dest='verbose', action='store_true', help='Verbose output')
+
     args = parser.parse_args()
     _files = []
     for ftype in ('*.pdf', '*.docx'):
         _files.extend(glob(args.folder + '/' + ftype))
-    main(_files[:5], verbose=args.verbose)
+    main(_files, method=args.method, verbose=args.verbose, threshold=args.threshold)

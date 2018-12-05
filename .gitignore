@@ -87,3 +87,4 @@ venv.bak/
 /site
 .mypy_cache/
 /.idea/*
+/.idea/vcs.xml
