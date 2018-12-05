@@ -24,7 +24,7 @@ def show_images(im, im2, im_name, im2_name, s, fa, fb, method):
     ax[1].set_title(fb.split('_')[0] + ' ' + im2_name)
 
 
-def main(files, method='hist', verbose=False, threshold=0.9):
+def do_report(files, method='hist', verbose=False, threshold=0.9):
     """
     Compare images between files in files
     :param verbose:
@@ -85,8 +85,8 @@ def main(files, method='hist', verbose=False, threshold=0.9):
                         args = {
                             'a_img': a_img,
                             'b_img': b_img,
-                            'a_name': f+a_name,
-                            'b_name': f2+b_name,
+                            'a_name': f + a_name,
+                            'b_name': f2 + b_name,
                         }
                         score = func(**args)
                         if score > threshold:
@@ -104,17 +104,23 @@ def main(files, method='hist', verbose=False, threshold=0.9):
         plt.show()
 
 
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser(
         description='Make a report about a folder of PDF or docx files and any suspiciously similar images or blocks of text that are images')
     # parser.
     parser.add_argument('folder', default='./', nargs='?', type=str, help='The folder of images to use')
-    parser.add_argument('method', default='kaze', nargs='?', choices=['hist', 'kaze', 'ssim'], help='Comparison method to use')
-    parser.add_argument('threshold', default=0.8, nargs='?', type=float, help='Similarity between images must exceed this value to count as a match')
+    parser.add_argument('method', default='kaze', nargs='?', choices=['hist', 'kaze', 'ssim'],
+                        help='Comparison method to use')
+    parser.add_argument('threshold', default=0.8, nargs='?', type=float,
+                        help='Similarity between images must exceed this value to count as a match')
     parser.add_argument('-v', dest='verbose', action='store_true', help='Verbose output')
 
     args = parser.parse_args()
     _files = []
     for ftype in ('*.pdf', '*.docx'):
         _files.extend(glob(args.folder + '/' + ftype))
-    main(_files, method=args.method, verbose=args.verbose, threshold=args.threshold)
+    do_report(_files, method=args.method, verbose=args.verbose, threshold=args.threshold)
+
+
+if __name__ == "__main__":
+    main()
