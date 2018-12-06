@@ -1,5 +1,6 @@
 minecart
 opencv-python
 numpy
+python-snappy
 matplotlib
 scikit-image
