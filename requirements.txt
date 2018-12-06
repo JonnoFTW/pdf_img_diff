@@ -1,6 +1,6 @@
-minecart
 opencv-python
 numpy
+tqdm
 python-snappy
 matplotlib
 scikit-image
