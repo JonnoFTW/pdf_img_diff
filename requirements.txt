@@ -1,6 +1,8 @@
 opencv-python
 numpy
+pillow
 tqdm
 python-snappy
 matplotlib
 scikit-image
+pymupdf

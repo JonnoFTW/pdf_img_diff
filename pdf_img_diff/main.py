@@ -171,7 +171,7 @@ def show_report(report, verbose, threshold, method, documents):
     for (fa, fb), matches in report.items():
         matches_above_threshold = [x for x in matches if x[-1] > threshold]
         if matches_above_threshold:
-            print("Matches between:\n  {}\n  {}:".format(fa, fb))
+            print("{}\n{}:".format(fa, fb))
             for m in matches_above_threshold:
                 print("\t", m)
                 if verbose:
